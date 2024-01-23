@@ -20,20 +20,24 @@
 #include <string>
 
 #include <android/hardware/graphics/allocator/2.0/IAllocator.h>
+#include <android/hardware/graphics/allocator/4.0/IAllocator.h>
 #include <android/hardware/graphics/mapper/2.0/IMapper.h>
+#include <android/hardware/graphics/mapper/4.0/IMapper.h>
 #include <utils/StrongPointer.h>
 
 namespace android {
 
 namespace GrallocWrapper {
 
-using hardware::graphics::allocator::V2_0::IAllocator;
 using hardware::graphics::common::V1_0::BufferUsage;
 using hardware::graphics::common::V1_0::PixelFormat;
-using hardware::graphics::mapper::V2_0::BufferDescriptor;
-using hardware::graphics::mapper::V2_0::Error;
-using hardware::graphics::mapper::V2_0::IMapper;
+using hardware::graphics::allocator::V4_0::IAllocator;
 using hardware::graphics::mapper::V2_0::YCbCrLayout;
+using hardware::graphics::mapper::V4_0::BufferDescriptor;
+using hardware::graphics::mapper::V4_0::Error;
+using hardware::graphics::mapper::V4_0::IMapper;
+
+using namespace hardware::graphics::mapper;
 
 // A wrapper to IMapper
 class Mapper {
@@ -41,8 +45,8 @@ public:
     Mapper();
 
     Error createDescriptor(
-            const IMapper::BufferDescriptorInfo& descriptorInfo,
-            BufferDescriptor* outDescriptor) const;
+            const V2_0::IMapper::BufferDescriptorInfo& descriptorInfo,
+            V2_0::BufferDescriptor* outDescriptor) const;
 
     // Import a buffer that is from another HAL, another process, or is
     // cloned.
@@ -56,13 +60,13 @@ public:
     // The ownership of acquireFence is always transferred to the callee, even
     // on errors.
     Error lock(buffer_handle_t bufferHandle, uint64_t usage,
-            const IMapper::Rect& accessRegion,
+            const V2_0::IMapper::Rect& accessRegion,
             int acquireFence, void** outData) const;
 
     // The ownership of acquireFence is always transferred to the callee, even
     // on errors.
     Error lock(buffer_handle_t bufferHandle, uint64_t usage,
-            const IMapper::Rect& accessRegion,
+            const V2_0::IMapper::Rect& accessRegion,
             int acquireFence, YCbCrLayout* outLayout) const;
 
     // unlock returns a fence sync object (or -1) and the fence sync object is
@@ -87,19 +91,19 @@ public:
      * again.  outBufferHandles must point to a space that can contain at
      * least "count" buffer_handle_t.
      */
-    Error allocate(BufferDescriptor descriptor, uint32_t count,
+    Error allocate(V2_0::BufferDescriptor descriptor, uint32_t count,
             uint32_t* outStride, buffer_handle_t* outBufferHandles) const;
 
-    Error allocate(BufferDescriptor descriptor,
+    Error allocate(V2_0::BufferDescriptor descriptor,
             uint32_t* outStride, buffer_handle_t* outBufferHandle) const
     {
         return allocate(descriptor, 1, outStride, outBufferHandle);
     }
 
-    Error allocate(const IMapper::BufferDescriptorInfo& descriptorInfo, uint32_t count,
+    Error allocate(const V2_0::IMapper::BufferDescriptorInfo& descriptorInfo, uint32_t count,
             uint32_t* outStride, buffer_handle_t* outBufferHandles) const
     {
-        BufferDescriptor descriptor;
+        V2_0::BufferDescriptor descriptor;
         Error error = mMapper.createDescriptor(descriptorInfo, &descriptor);
         if (error == Error::NONE) {
             error = allocate(descriptor, count, outStride, outBufferHandles);
@@ -107,7 +111,7 @@ public:
         return error;
     }
 
-    Error allocate(const IMapper::BufferDescriptorInfo& descriptorInfo,
+    Error allocate(const V2_0::IMapper::BufferDescriptorInfo& descriptorInfo,
             uint32_t* outStride, buffer_handle_t* outBufferHandle) const
     {
         return allocate(descriptorInfo, 1, outStride, outBufferHandle);

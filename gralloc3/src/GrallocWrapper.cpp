@@ -23,6 +23,7 @@
 #include <sync/sync.h>
 #pragma clang diagnostic pop
 
+#include "Gralloc42.h"
 #include "GrallocWrapper.h"
 
 namespace android {
@@ -40,11 +41,14 @@ Mapper::Mapper()
 }
 
 Error Mapper::createDescriptor(
-        const IMapper::BufferDescriptorInfo& descriptorInfo,
-        BufferDescriptor* outDescriptor) const
+        const V2_0::IMapper::BufferDescriptorInfo& descriptorInfo,
+        V2_0::BufferDescriptor* outDescriptor) const
 {
+    V4_0::IMapper::BufferDescriptorInfo infoV4;
+    translate(descriptorInfo, infoV4);
+
     Error error;
-    auto ret = mMapper->createDescriptor(descriptorInfo,
+    auto ret = mMapper->createDescriptor(infoV4,
             [&](const auto& tmpError, const auto& tmpDescriptor)
             {
                 error = tmpError;
@@ -52,7 +56,7 @@ Error Mapper::createDescriptor(
                     return;
                 }
 
-                *outDescriptor = tmpDescriptor;
+                translate(tmpDescriptor, *outDescriptor);
             });
 
     return (ret.isOk()) ? error : kTransactionError;
@@ -87,9 +91,12 @@ void Mapper::freeBuffer(buffer_handle_t bufferHandle) const
 }
 
 Error Mapper::lock(buffer_handle_t bufferHandle, uint64_t usage,
-        const IMapper::Rect& accessRegion,
+        const V2_0::IMapper::Rect& accessRegion,
         int acquireFence, void** outData) const
 {
+    V4_0::IMapper::Rect accessRegionV4;
+    translate(accessRegion, accessRegionV4);
+
     auto buffer = const_cast<native_handle_t*>(bufferHandle);
 
     // put acquireFence in a hidl_handle
@@ -102,7 +109,7 @@ Error Mapper::lock(buffer_handle_t bufferHandle, uint64_t usage,
     }
 
     Error error;
-    auto ret = mMapper->lock(buffer, usage, accessRegion, acquireFenceHandle,
+    auto ret = mMapper->lock(buffer, usage, accessRegionV4, acquireFenceHandle,
             [&](const auto& tmpError, const auto& tmpData)
             {
                 error = tmpError;
@@ -122,10 +129,15 @@ Error Mapper::lock(buffer_handle_t bufferHandle, uint64_t usage,
 }
 
 Error Mapper::lock(buffer_handle_t bufferHandle, uint64_t usage,
-        const IMapper::Rect& accessRegion,
+        const V2_0::IMapper::Rect& accessRegion,
         int acquireFence, YCbCrLayout* outLayout) const
 {
     auto buffer = const_cast<native_handle_t*>(bufferHandle);
+    YCbCrLayout layout = {};
+    void* mapped = nullptr;
+
+    V4_0::IMapper::Rect accessRegionV4;
+    translate(accessRegion, accessRegionV4);
 
     // put acquireFence in a hidl_handle
     hardware::hidl_handle acquireFenceHandle;
@@ -137,7 +149,7 @@ Error Mapper::lock(buffer_handle_t bufferHandle, uint64_t usage,
     }
 
     Error error;
-    auto ret = mMapper->lockYCbCr(buffer, usage, accessRegion,
+    auto ret = mMapper->lock(buffer, usage, accessRegionV4,
             acquireFenceHandle,
             [&](const auto& tmpError, const auto& tmpLayout)
             {
@@ -146,8 +158,14 @@ Error Mapper::lock(buffer_handle_t bufferHandle, uint64_t usage,
                     return;
                 }
 
-                *outLayout = tmpLayout;
+                mapped = tmpLayout;
             });
+
+    // TODO: IMPL
+    if (mapped != nullptr) {
+    }
+
+    *outLayout = layout;
 
     // we own acquireFence even on errors
     if (acquireFence >= 0) {
@@ -207,18 +225,17 @@ std::string Allocator::dumpDebugInfo() const
 {
     std::string debugInfo;
 
-    mAllocator->dumpDebugInfo([&](const auto& tmpDebugInfo) {
-        debugInfo = tmpDebugInfo.c_str();
-    });
-
     return debugInfo;
 }
 
-Error Allocator::allocate(BufferDescriptor descriptor, uint32_t count,
+Error Allocator::allocate(V2_0::BufferDescriptor descriptor, uint32_t count,
         uint32_t* outStride, buffer_handle_t* outBufferHandles) const
 {
+    V4_0::BufferDescriptor descriptorV4;
+    translate(descriptor, descriptorV4);
+
     Error error;
-    auto ret = mAllocator->allocate(descriptor, count,
+    auto ret = mAllocator->allocate(descriptorV4, count,
             [&](const auto& tmpError, const auto& tmpStride,
                 const auto& tmpBuffers) {
                 error = tmpError;
