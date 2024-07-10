@@ -245,6 +245,9 @@ struct audio_device {
     bool fm_radio_mute;
     int  pcmread_latency;
     bool update_offload_volume;
+
+    // Currently active voice recognition stream
+    struct stream_in *recognition_input;
 };
 
 

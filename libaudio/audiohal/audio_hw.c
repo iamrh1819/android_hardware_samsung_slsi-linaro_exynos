@@ -3897,6 +3897,32 @@ static void adev_close_output_stream(
     return;
 }
 
+void stop_recognition_input(
+        struct stream_in *in)
+{
+    struct audio_device *adev = in->adev;
+
+    if (in->common.stream_status > STATUS_STANDBY) {
+        in->common.stream_status = STATUS_PAUSED;
+        pthread_mutex_lock(&adev->lock);
+        proxy_stop_capture_stream((void *)(in->common.proxy_stream));
+        proxy_close_capture_stream((void *)(in->common.proxy_stream));
+        pthread_mutex_unlock(&adev->lock);
+
+        ALOGI("Disabled recognition input");
+    }
+}
+
+void start_recognition_input(
+        struct stream_in *in)
+{
+    if (in->common.stream_status == STATUS_PAUSED) {
+        in->common.stream_status = STATUS_STANDBY;
+
+        ALOGI("Enabled recognition input");
+    }
+}
+
 static int adev_open_input_stream(
         struct audio_hw_device *dev,
         audio_io_handle_t handle,
@@ -3915,6 +3941,10 @@ static int adev_open_input_stream(
           __func__, handle, config->sample_rate, config->channel_mask, config->format, config->frame_count, devices, flags, source);
 
     *stream_in = NULL;
+
+    if (adev->recognition_input) {
+        stop_recognition_input(adev->recognition_input);
+    }
 
     /* Allocates the memory for structure audio_stream_in. */
     in = (struct stream_in *)calloc(1, sizeof(struct stream_in));
@@ -4160,6 +4190,10 @@ static int adev_open_input_stream(
                             proxy_get_actual_sampling_rate(in->common.proxy_stream);
     in->pcm_reconfig = false;
 
+    if (in->common.stream_usage == AUSAGE_RECOGNITION) {
+        adev->recognition_input = in;
+    }
+
     pthread_mutex_unlock(&adev->lock);
 
     pthread_mutex_unlock(&in->common.lock);
@@ -4174,6 +4208,10 @@ err_open:
     if (in)
         free(in);
     *stream_in = NULL;
+
+    if (adev->recognition_input) {
+        start_recognition_input(adev->recognition_input);
+    }
 
     ALOGI("device-%s: failed to open this stream as error(%d)", __func__, ret);
     return ret;
@@ -4218,6 +4256,13 @@ static void adev_close_input_stream(
                 free(in_node);
             }
         }
+
+        if (in->common.stream_usage == AUSAGE_RECOGNITION) {
+            adev->recognition_input = NULL;
+        } else if (adev->recognition_input) {
+            start_recognition_input(adev->recognition_input);
+        }
+
         pthread_mutex_unlock(&adev->lock);
 
         proxy_destroy_capture_stream(in->common.proxy_stream);
@@ -4585,6 +4630,8 @@ static int adev_open(
     adev->pcmread_latency = 0;
     adev->update_offload_volume = false;
     adev->current_devices = AUDIO_DEVICE_NONE;
+
+    adev->recognition_input = NULL;
 
     proxy_init_offload_effect_lib(adev->proxy);
 
