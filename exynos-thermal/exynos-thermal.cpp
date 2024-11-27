@@ -23,8 +23,7 @@ int main(int argc, char *argv[])
 	string envPath = "/vendor/exynos-thermal.env";
 
 	if (argc == 2) {
-		string arg;
-		arg.assign(argv[1], 10);
+		string arg(argv[1]);
 		if (arg == "nolog")
 			debugLogEnable = false;
 	}
