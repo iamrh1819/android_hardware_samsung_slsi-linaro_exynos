@@ -68,24 +68,3 @@ LOCAL_CFLAGS += -DGRALLOC_10B_ALIGN_RESTRICTION
 endif
 
 include $(BUILD_SHARED_LIBRARY)
-
-#######################################################################################################
-
-include $(CLEAR_VARS)
-
-LOCAL_SHARED_LIBRARIES := liblog libcutils libion_exynos libutils android.hardware.graphics.allocator@2.0 android.hardware.graphics.mapper@2.0 \
-						libsync libhardware libhidlbase
-
-LOCAL_C_INCLUDES := \
-	$(LOCAL_PATH)/../include \
-	$(TOP)/hardware/samsung_slsi-linaro/exynos/include \
-	$(TOP)/hardware/samsung_slsi-linaro/exynos5/include \
-	$(TOP)/system/core/libsync/include
-
-LOCAL_SRC_FILES := 	\
-	GrallocWrapper.cpp
-
-LOCAL_PROPRIETARY_MODULE := true
-LOCAL_MODULE := libGrallocWrapper
-
-include $(BUILD_SHARED_LIBRARY)
