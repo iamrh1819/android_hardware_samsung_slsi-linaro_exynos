@@ -31,7 +31,7 @@ cc_library_static {
         "libcutils",
     ],
     header_libs: [
-        "libgralloc3_headers_exynos",
+        "//hardware/samsung_slsi-linaro/exynos/gralloc/gralloc3:libgralloc3_headers_exynos",
     ],
     include_dirs: [
         ".",
@@ -44,7 +44,7 @@ cc_library_static {
         "libdrm",
     ],
     export_header_lib_headers: [
-        "libgralloc3_headers_exynos",
+        "//hardware/samsung_slsi-linaro/exynos/gralloc/gralloc3:libgralloc3_headers_exynos",
     ],
 	product_variables: {
 		platform_sdk_version: {
