@@ -17,16 +17,16 @@ soong_namespace {
     imports: [
         "hardware/samsung_slsi-linaro/exynos/tee/kinibi520",
         "hardware/samsung_slsi-linaro/exynos/tee/kinibi510",
-        "hardware/samsung_slsi-linaro/exynos/tee/kinibi500"
+        "hardware/samsung_slsi-linaro/exynos/tee/kinibi500",
+        "hardware/samsung_slsi-linaro/exynos/tee/kinibi410",
     ],
 }
 
-cc_binary {
-    name: "android.hardware.keymaster@4.0_tee-service",
+cc_defaults {
+    name: "keymaster_tee_defaults",
     defaults: ["hidl_defaults"],
     relative_install_path: "hw",
     vendor: true,
-    init_rc: ["android.hardware.keymaster@4.0_tee-service.rc"],
     srcs: [
             "src/service.cpp",
             "src/authlist.cpp",
@@ -45,7 +45,6 @@ cc_binary {
          "include"
     ],
     shared_libs: [
-        "android.hardware.keymaster@4.0",
         "libbase",
         "libcutils",
         "libhardware",
@@ -56,5 +55,26 @@ cc_binary {
         "libMcClient",
         "libcrypto"
     ],
+}
 
+cc_binary {
+    name: "android.hardware.keymaster@4.0_tee-service",
+    defaults: ["keymaster_tee_defaults"],
+    init_rc: ["android.hardware.keymaster@4.0_tee-service.rc"],
+    vintf_fragments: ["android.hardware.keymaster@4.0_tee-service.xml"],
+    cflags: ["-DKEYMASTER_WANTED_VERSION=4"],
+    shared_libs: [
+        "android.hardware.keymaster@4.0",
+    ],
+}
+
+cc_binary {
+    name: "android.hardware.keymaster@3.0_tee-service",
+    defaults: ["keymaster_tee_defaults"],
+    init_rc: ["android.hardware.keymaster@3.0_tee-service.rc"],
+    vintf_fragments: ["android.hardware.keymaster@3.0_tee-service.xml"],
+    cflags: ["-DKEYMASTER_WANTED_VERSION=3"],
+    shared_libs: [
+        "android.hardware.keymaster@3.0",
+    ],
 }
