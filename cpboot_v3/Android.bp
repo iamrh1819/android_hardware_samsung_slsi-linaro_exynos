@@ -1,0 +1,156 @@
+soong_config_module_type {
+    name: "cbd_cc_defaults",
+    module_type: "cc_defaults",
+    config_namespace: "cbd",
+    variables: ["version", "protocol", "cptype"],
+    properties: ["cflags", "srcs", "enabled"],
+}
+
+soong_config_string_variable {
+    name: "version",
+    values: ["v3"],
+}
+
+soong_config_string_variable {
+    name: "protocol",
+    values: ["sit", "sipc"],
+}
+
+soong_config_string_variable {
+    name: "cptype",
+    values: ["modap", "ext"],
+}
+
+cbd_cc_defaults {
+    name: "cbd_v3.defaults",
+    static_executable: false,
+    proprietary: true,
+    cpp_std: "c++17",
+    stem: "cbd",
+    enabled: false,
+
+    include_dirs: [
+        "bionic/libc/bionic",
+    ],
+
+    cflags: [
+        "-Wall",
+        "-Wno-unused-parameter",
+        "-D_GNU_SOURCE",
+    ],
+
+    srcs: [
+        "main.cpp",
+        "BootDump.cpp",
+        "Container.cpp",
+        "Protocol.cpp",
+        "Srinfo.cpp",
+        "Util.cpp",
+        "Log.cpp",
+    ],
+
+    shared_libs: [
+        "liblog",
+        "libcutils",
+        "libc",
+        "libselinux",
+    ],
+
+    soong_config_variables: {
+        version: {
+            v3: {
+                enabled: true,
+            },
+        },
+        protocol: {
+            sit: {
+                cflags: [
+                    "-DCONFIG_PROTOCOL_SIT",
+                ],
+                srcs: [
+                    "ProtocolSit.cpp",
+                    "SrinfoSit2.cpp",
+                ],
+            },
+            sipc: {
+                cflags: [
+                    "-DCONFIG_SEC_CP_VERIFYING_ALL",
+                ],
+                srcs: [
+                    "ProtocolSipc.cpp",
+                    "SrinfoSipc.cpp",
+                ],
+            },
+        },
+        cptype: {
+            modap: {
+                cflags: [
+                    "-DCONFIG_TYPE_MODAP",
+                ],
+                srcs: [
+                    "BootDumpModap.cpp",
+                ],
+            },
+            ext: {
+                cflags: [
+                    "-DCONFIG_TYPE_EXT",
+                ],
+                srcs: [
+                    "BootDumpExt.cpp",
+                ],
+            },
+            conditions_default: {
+                cflags: [
+                    "-DCONFIG_TYPE_MODAP",
+                    "-DCONFIG_TYPE_EXT",
+                ],
+                srcs: [
+                    "BootDumpModap.cpp",
+                    "BootDumpExt.cpp",
+                ],
+            },
+        },
+    },
+}
+
+cc_binary {
+    name: "cbd_v3",
+    defaults: ["cbd_v3.defaults"],
+}
+
+cbd_cc_defaults {
+    name: "cld_v3.defaults",
+    static_executable: false,
+    proprietary: true,
+    stem: "cld",
+    enabled: false,
+
+    include_dirs: ["bionic/libc/bionic"],
+
+    shared_libs: [
+        "liblog",
+        "libcutils",
+        "libc",
+    ],
+
+    soong_config_variables: {
+        version: {
+            v3: {
+                enabled: true,
+            },
+        },
+        protocol: {
+            sipc: {
+                srcs: ["lb_main.c"],
+            },
+            conditions_default: {
+                enabled: false,
+            },
+        },
+    },
+}
+
+cc_binary {
+    name: "cld_v3",
+    defaults: ["cld_v3.defaults"],
+}
