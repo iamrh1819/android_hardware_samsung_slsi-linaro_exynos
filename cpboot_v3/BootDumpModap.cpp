@@ -326,6 +326,7 @@ struct std_dump_args *BootDumpModap::getStdDump()
 void BootDumpModap::setCbdArgs(char *name)
 {
 	struct std_cbd_args *cbd_args = Container::getCbdArgs();
+	char prop_buf[PROPERTY_VALUE_MAX] = {0, };
 
 #ifdef CONFIG_PROTOCOL_SIT
 	cbd_info("MODAP SIT modem\n");
@@ -341,13 +342,15 @@ void BootDumpModap::setCbdArgs(char *name)
 	cbd_args->cpn.num_stages = 5; /* toc, boot, main, vss, nv */
 #endif
 
+	property_get("ro.boot.slot_suffix", prop_buf, "");
+
 	cbd_args->lnk_boot = LINKDEV_SHMEM;
 	cbd_args->lnk_main = LINKDEV_SHMEM;
 	sprintf(cbd_args->cpn.name, "%s", name);
 	cbd_args->cpn.rat = "umts";
 	sprintf(cbd_args->cpn.node_boot, "/dev/umts_boot0");
 	cbd_args->cpn.node_status = cbd_args->cpn.node_boot;
-	sprintf(cbd_args->cpn.path_bin, "/dev/block/by-name/modem");
+	sprintf(cbd_args->cpn.path_bin, "/dev/block/by-name/modem%s", prop_buf);
 	sprintf(cbd_args->cpn.path_nv_data, "/mnt/vendor/efs/nv_data.bin");
 	cbd_args->cpn.nv_size = (512 << 10);
 	cbd_args->cpn.first_stage_toc_type = TOC_TOC;
