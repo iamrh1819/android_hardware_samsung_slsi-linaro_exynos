@@ -1,3 +1,4 @@
+soong_namespace {}
 
 cc_defaults {
     name: "cbd_v3.defaults",
