@@ -178,7 +178,7 @@ int BootDump::std_boot_power_on()
 	int ret;
 
 #ifdef LEGACY_IOCTL
-	int sim_slot_cnt = 2;
+	int sim_slot_cnt = Container::getProtocol()->get_factory_prop();
 	ret = ioctl(getStdBoot()->fds[FD_DEV], IOCTL_POWER_ON, &sim_slot_cnt);
 #else
 	ret = ioctl(getStdBoot()->fds[FD_DEV], IOCTL_POWER_ON, NULL);
