@@ -128,12 +128,14 @@ int BootDumpModap::boot()
 	}
 #endif
 
+#ifndef LEGACY_SIPC_IOCTL
 	cbd_info("Power on CP\n");
 	ret = std_boot_power_on();
 	if (ret < 0) {
 		cbd_info("ERR! std_boot_power_on fail\n");
 		goto exit;
 	}
+#endif
 
 #ifndef LEGACY_IOCTL
 	cbd_info("Request security : non-secure mode\n");
@@ -193,8 +195,19 @@ int BootDumpModap::boot()
 		goto exit;
 	}
 
+#ifndef LEGACY_SIPC_IOCTL
 	/* set SIM configuration using /efs/factory.prop */
 	set_sim_configuration();
+#endif
+#endif
+
+#ifdef LEGACY_SIPC_IOCTL
+	cbd_info("Power on CP\n");
+	ret = std_boot_power_on();
+	if (ret < 0) {
+		cbd_info("ERR! std_boot_power_on fail\n");
+		goto exit;
+	}
 #endif
 
 	cbd_info("Start CP bootloader\n");
@@ -204,7 +217,7 @@ int BootDumpModap::boot()
 		goto exit;
 	}
 
-#ifdef LEGACY_IOCTL
+#if defined(LEGACY_IOCTL) || defined(LEGACY_SIPC_IOCTL)
 	ret = ioctl(getStdBoot()->fds[FD_DEV], IOCTL_MODEM_DL_START, NULL);
 	if (ret < 0) {
 		cbd_err("modem_request_security failed!!!\n");
@@ -293,7 +306,7 @@ int BootDumpModap::dump()
 		goto exit;
 	}
 
-#ifndef LEGACY_IOCTL
+#if !defined(LEGACY_IOCTL) && !defined(LEGACY_SIPC_IOCTL)
 	cbd_info("Request security : dump mode\n");
 	ret = std_security_req(CP_BOOT_MODE_DUMP,
 				   std_boot.dl_ctrl[TOC_BOOT].b_size,

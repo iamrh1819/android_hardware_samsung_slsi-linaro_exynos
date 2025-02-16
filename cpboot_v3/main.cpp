@@ -50,7 +50,7 @@ exit:
 }
 #endif
 
-#ifndef LEGACY_IOCTL
+#if !defined(LEGACY_IOCTL) && !defined(LEGACY_SIPC_IOCTL)
 /*Read the property set by APK, and then set the btl size*/
 static int adjust_btl_ramsize()
 {
@@ -354,7 +354,7 @@ int main(int argc, char **argv)
 	else
 		Util::switch_user();
 
-#ifndef LEGACY_IOCTL
+#if !defined(LEGACY_IOCTL) && !defined(LEGACY_SIPC_IOCTL)
 	err = adjust_btl_ramsize();
 	if (err < 0) {
 		cbd_err("adjust btl ramsize fail\n");

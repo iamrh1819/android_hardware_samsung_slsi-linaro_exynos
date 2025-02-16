@@ -62,7 +62,11 @@ enum cp_boot_mode {
 struct boot_mode {
 	enum cp_boot_mode idx;
 } __attribute__((__packed__));
+#ifdef LEGACY_SIPC_IOCTL
+#define IOCTL_POWER_RESET		_IO(IOCTL_MAGIC, 0x21)
+#else
 #define IOCTL_POWER_RESET		_IOW(IOCTL_MAGIC, 0x21, struct boot_mode)
+#endif
 #define IOCTL_START_CP_BOOTLOADER	_IOW(IOCTL_MAGIC, 0x22, struct boot_mode)
 #define IOCTL_MODEM_BOOT_ON		_IO(IOCTL_MAGIC, 0x22)
 #define IOCTL_COMPLETE_NORMAL_BOOTUP	_IO(IOCTL_MAGIC, 0x23)
@@ -88,7 +92,11 @@ struct cp_image {
 	u32 len;
 #endif
 } __attribute__((__packed__));
+#ifdef LEGACY_SIPC_IOCTL
+#define IOCTL_LOAD_CP_IMAGE		_IO(IOCTL_MAGIC, 0x40)
+#else
 #define IOCTL_LOAD_CP_IMAGE		_IOW(IOCTL_MAGIC, 0x40, struct cp_image)
+#endif
 
 #define IOCTL_GET_SRINFO		_IO(IOCTL_MAGIC, 0x45)
 #define IOCTL_SET_SRINFO		_IO(IOCTL_MAGIC, 0x46)
@@ -123,7 +131,11 @@ struct modem_sec_req {
 	u32 param3;
 	u32 param4;
 } __attribute__((__packed__));
+#ifdef LEGACY_SIPC_IOCTL
+#define IOCTL_REQ_SECURITY		_IO('o', 0x53)
+#else
 #define IOCTL_REQ_SECURITY		_IOW('o', 0x53, struct modem_sec_req)
+#endif
 
 /* Crash reason */
 #define CRASH_REASON_SIZE	512

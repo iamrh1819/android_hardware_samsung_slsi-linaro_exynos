@@ -201,7 +201,11 @@ int BootDump::std_boot_power_reset(enum cp_boot_mode mode_idx)
 	struct boot_mode mode;
 
 	mode.idx = mode_idx;
+#ifdef LEGACY_SIPC_IOCTL
+	ret = ioctl(dev_fd, IOCTL_POWER_RESET, NULL);
+#else
 	ret = ioctl(dev_fd, IOCTL_POWER_RESET, &mode);
+#endif
 	if (ret < 0) {
 		cbd_err("ERR! IOCTL_POWER_RESET fail\n");
 		goto exit;
@@ -218,7 +222,7 @@ int BootDump::std_boot_start_cp_bootloader(enum cp_boot_mode mode_idx)
 	struct boot_mode mode = {.idx = mode_idx};
 	int ret;
 
-#ifdef LEGACY_IOCTL
+#if defined(LEGACY_IOCTL) || defined(LEGACY_SIPC_IOCTL)
 	ret = ioctl(getStdBoot()->fds[FD_DEV], IOCTL_MODEM_BOOT_ON, NULL);
 #else
 	ret = ioctl(getStdBoot()->fds[FD_DEV], IOCTL_START_CP_BOOTLOADER, &mode);
