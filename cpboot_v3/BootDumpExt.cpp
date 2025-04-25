@@ -196,7 +196,11 @@ void BootDumpExt::setCbdArgs(char *name)
 	/* ToDo: "nr" is for 2CP device, can use "umts" on 1CP device */
 	sprintf(cbd_args->cpn.node_boot, "/dev/nr_boot0");
 	sprintf(cbd_args->cpn.node_dump, "/dev/nr_ramdump0");
+#ifndef LEGACY_SIPC_IOCTL
 	sprintf(cbd_args->cpn.path_nv_data, "/mnt/vendor/efs/nv_nr_data.bin");
+#else
+	sprintf(cbd_args->cpn.path_nv_data, "/mnt/vendor/efs/nv_5g_data.bin");
+#endif
 	cbd_args->cpn.num_stages = 6; /* boot, toc, main, vss, nv, fin */
 #endif
 
@@ -302,12 +306,14 @@ int BootDumpExt::shannon_normal_boot()
 {
 	int ret;
 
+#ifndef LEGACY_SIPC_IOCTL
 	cbd_info("Power on CP\n");
 	ret = std_boot_power_on();
 	if (ret < 0) {
 		cbd_info("ERR! std_boot_power_on fail\n");
 		goto exit;
 	}
+#endif
 
 	cbd_info("Load CP bootloader\n");
 	ret = std_boot_load_cp_bootloader();
@@ -315,6 +321,15 @@ int BootDumpExt::shannon_normal_boot()
 		cbd_info("ERR! std_boot_load_cp_image fail\n");
 		goto exit;
 	}
+
+#ifdef LEGACY_SIPC_IOCTL
+	cbd_info("Power on CP\n");
+	ret = std_boot_power_on();
+	if (ret < 0) {
+		cbd_info("ERR! std_boto_power_on fail\n");
+		goto exit;
+	}
+#endif
 
 	cbd_info("Start CP bootloader\n");
 	ret = std_boot_start_cp_bootloader(CP_BOOT_MODE_NORMAL);
